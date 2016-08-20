@@ -5,12 +5,19 @@ ChainItem = namedtuple("ChainItem", "expected on_match otherwise")
 FunctionCall = namedtuple("FunctionCall", "fn args kwargs")
 
 
-class _Promise:
-    """The *actual* promise implementation"""
+class promise:
+    """
+    A promise is a way of adding callbacks in a chain that will
+    definitely be executed at some point -- we promise!
+    """
 
-    def __init__(self, fn, *args, **kwargs):
+    def __init__(self, fn):
+        self.fn = fn
+
+    def __call__(self, fn, *args, **kwargs):
         self.first_call = FunctionCall(fn, args, kwargs)
         self.call_chain = []
+        return self
 
     def on(self, expected, on_match, otherwise=None):
         """
@@ -44,21 +51,3 @@ class _Promise:
             else:
                 return otherwise(result, expected)
         return result
-
-
-class promise:
-    """
-    A promise is a way of adding callbacks in a chain that will
-    definitely be executed at some point -- we promise!
-    """
-
-    def __init__(self, fn):
-        self.fn = fn
-
-    def __call__(self, *args, **kwargs):
-        """
-        Override the raw callable we're decorating to return
-        a promise -- that way we can call its `.then` method!
-        """
-        return _Promise(self.fn, *args, **kwargs)
-
