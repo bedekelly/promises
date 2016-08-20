@@ -109,9 +109,14 @@ def promise(fn):
         @promise. The first call we make, to kick off the call chain, should
         be this function call -- store it to use later.
         """
+
+        # If we want to just call the wrapped function:
         if kwargs.get("no_promise"):
             del kwargs["no_promise"]
             return fn(*args, **kwargs)
+
+        # Otherwise, treat this as a call to a Promise.
         first_call = FunctionCall(fn, args, kwargs)
         return _Promise(first_call=first_call)
+
     return decorated_function
