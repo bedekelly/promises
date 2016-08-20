@@ -31,7 +31,7 @@ Promises run asynchronously by default: the `.go()` method doesn't block.
 Later on, if you need to retrieve the result of the `success()` or `failure()` method called last, you can run `.wait()` on the promise.
 
 ```python
-my_promise = add_one(5)
+my_promise = add_one(5).go()
 print("5+1 is being calculated in the background")
 result = my_promise.wait()
 assert result == 6
