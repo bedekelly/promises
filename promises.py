@@ -26,7 +26,7 @@ class _Promise:
         """
         Start the promise chain executing, asynchronously!
         """
-        Thread(self.wait).start()
+        return Thread(self.wait).start()
 
     def wait(self):
         """
