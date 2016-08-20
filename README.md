@@ -6,7 +6,7 @@ they succeed or fail.
 
 This implementation modifies this slightly -- instead of a single Success or
 Failure return type, it provides an "on" method to specify what the return
-type should be.
+value should be.
 
 ```python
 @promise
