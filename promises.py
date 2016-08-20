@@ -1,7 +1,7 @@
 from collections import namedtuple
 from functools import wraps
 from queue import Queue
-from threading import Thread
+from threading import Thread, current_thread
 
 ChainItem = namedtuple("ChainItem", "expected on_match otherwise")
 FunctionCall = namedtuple("FunctionCall", "fn args kwargs")
@@ -41,9 +41,8 @@ class _Promise:
         """
         if self._thread is None:
             _thread = Thread(target=self._wait)
-            _thread.daemon = True
-            _thread.start()
             _thread.result_queue = Queue()
+            _thread.start()
             self._thread = _thread
         return self
 
@@ -70,7 +69,7 @@ class _Promise:
         A dummy 'return' statement for the '_wait' method to use, as the
         .join method of a Thread can't return a value.
         """
-        return self._thread.result_queue.put(retval)
+        return current_thread().result_queue.put(retval)
 
     def _wait(self):
         """
