@@ -13,14 +13,11 @@ type should be.
 def add_one(n):
     return n + 1
 
-
 def success(n):
     print("This function will be called with n: {}".format(n))
 
-
 def failure(n):
     assert False, "This function won't be called!"
-
 
 (
     add_one(12)
