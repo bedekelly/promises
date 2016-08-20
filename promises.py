@@ -87,7 +87,7 @@ class _Promise:
             expected, on_match, otherwise = call_item
             if result == expected:
                 try:
-                    result = on_match(result, inside_promise=True)
+                    result = on_match(result, no_promise=True)
                 except TypeError as e:
                     if "unexpected keyword argument" in str(e):
                         result = on_match(result)
@@ -110,8 +110,8 @@ def promise(fn):
         @promise. The first call we make, to kick off the call chain, should
         be this function call -- store it to use later.
         """
-        if kwargs.get("inside_promise"):
-            del kwargs["inside_promise"]
+        if kwargs.get("no_promise"):
+            del kwargs["no_promise"]
             return fn(*args, **kwargs)
         first_call = FunctionCall(fn, args, kwargs)
         return _Promise(first_call=first_call)
