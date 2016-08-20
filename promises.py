@@ -64,12 +64,12 @@ class _Promise:
             self.go()
         return self._thread.result_queue.get()
 
-    def _return(self, retval):
+    def _return(self, return_value):
         """
         A dummy 'return' statement for the '_wait' method to use, as the
         .join method of a Thread can't return a value.
         """
-        return self._thread.result_queue.put(retval)
+        return self._thread.result_queue.put(return_value)
 
     def _wait(self):
         """

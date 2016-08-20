@@ -6,19 +6,19 @@ from promises import promise
 logging.basicConfig(level=logging.INFO)
 
 
-def fail(result, expected):
+def fail(promise_result, expected):
     """Log an error with the given message."""
     logging.warning("Failure in promise: result({}) is not expected({})"
                     "".format(result, expected))
-    return result, expected
+    return promise_result, expected
 
 
 def add_three(param):
     """Add three to the given parameter."""
     time.sleep(1)
-    result = param + 3
-    logging.info("Adding three to {}: returning {}".format(param, result))
-    return result
+    my_result = param + 3
+    logging.info("Adding three to {}: returning {}".format(param, my_result))
+    return my_result
 
 
 @promise
@@ -37,7 +37,6 @@ def wait_one(param):
         .on(10, fail, fail)  # Doesn't get called!
         .wait()
 )
-
 
 logging.info("Creating promise...")
 promise_two = wait_one(3)
