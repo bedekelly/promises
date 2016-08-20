@@ -38,3 +38,13 @@ def wait_one(param):
         .wait()
 )
 
+
+logging.info("Creating promise...")
+promise_two = wait_one(3)
+logging.info("Adding items to callback chain...")
+promise_two.on(3, add_three, fail).on(6, wait_one, fail)
+logging.info("Starting promise asynchronously...")
+promise_two.go()
+logging.info("Waiting for promise to join...")
+result = promise_two.wait()
+logging.info("Got result from promise: {}.".format(result))
