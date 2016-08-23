@@ -29,8 +29,8 @@ class _Promise:
     def on(self, expected, on_match, otherwise=None):
         """
         Add an item to the callback chain. This should include an "expected"
-        value, a function to call if it matches, and a function to call if
-        it doesn't.
+        value, an `on_match` function to call if it matches, and an `otherwise`
+        function to call if it doesn't.
 
         If an `otherwise` function isn't given, use a function which raises
         a ValueError when called.
@@ -53,9 +53,10 @@ class _Promise:
 
     def go(self):
         """
-        Start the promise chain executing, if it's not executing already.
-        If it is, don't make a fuss -- just return the promise object as
-        usual.
+        If the promise chain isn't running currently, start it up. This
+        method should not block; if a blocking method is required, use the
+        `wait()` method.
+
         :returns: The current promise instance, `self`.
         """
         if self._thread is None:
@@ -67,17 +68,12 @@ class _Promise:
 
     def wait(self):
         """
-        If we've already detached from this Promise and want to reattach
-        using `promise.wait()`, just return the result of joining the
-        promise thread to the current one. -- i.e. wait for the result.
+        If we don't have a preexisting thread -- i.e. `.go()` hasn't been
+        called yet -- we should start one running.
 
-        If we haven't, we're starting the Promise for the first time.
-        Iterate through the call chain, passing results to the next callback
-        until we reach either the end, or a failure callback is needed.
-
-        Either way, we return the final result of the callback chain: whether
-        that be the return value of the last item in the chain, or the return
-        value of the first (and only) failure callback.
+        Block, and wait for the result of the final callback in the chain;
+        this can be either an error-callback, or the final success-callback
+        in the chain.
 
         :return: The return value of the last item called in the chain.
         """
@@ -89,8 +85,8 @@ class _Promise:
         """
         A dummy 'return' statement for the '._wait()' method to use, as the
         `.join()` method of a Thread can't return a value. We place the
-        `return value` on a results queue, and in the `.wait()` method we
-        can retrieve this same `return_value`.
+        `return value` on a results queue, and retrieve it in the `wait()`
+        method.
 
         :param return_value: The object to place on the result queue.
         :return: The result of placing an item on the queue (not needed).
