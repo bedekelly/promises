@@ -16,7 +16,10 @@ class _Promise:
 
     def __init__(self, first_call):
         """
-        Create a Promise, given the first function it should call.
+        Create a Promise, given the first function it should call. Also,
+        set up the Promise's call chain, and initialise a name for the
+        thread which it'll be using to run the `_wait` method.
+
         :param first_call: The first function in the call chain.
         """
         self.first_call = first_call
@@ -25,11 +28,26 @@ class _Promise:
 
     def on(self, expected, on_match, otherwise=None):
         """
-        Add handler functions for the promise we're wrapping.
+        Add an item to the callback chain. This should include an "expected"
+        value, a function to call if it matches, and a function to call if
+        it doesn't.
+
+        If an `otherwise` function isn't given, use a function which raises
+        a ValueError when called.
+
         :param expected: The value we're checking for.
         :param on_match: A callable to run if the result matches 'expected'.
         :param otherwise: A callable to run if it doesn't.
         """
+
+        def raise_value_error(expected_result, result):
+            """The result wasn't what we were expecting; raise a ValueError."""
+            raise ValueError("expected({}) does not equal result({})"
+                             "".format(expected_result, result))
+
+        if otherwise is None:
+            otherwise = raise_value_error
+
         self.call_chain.append(ChainItem(expected, on_match, otherwise))
         return self
 
@@ -38,6 +56,7 @@ class _Promise:
         Start the promise chain executing, if it's not executing already.
         If it is, don't make a fuss -- just return the promise object as
         usual.
+        :returns: The current promise instance, `self`.
         """
         if self._thread is None:
             _thread = Thread(target=self._wait)
@@ -59,6 +78,8 @@ class _Promise:
         Either way, we return the final result of the callback chain: whether
         that be the return value of the last item in the chain, or the return
         value of the first (and only) failure callback.
+
+        :return: The return value of the last item called in the chain.
         """
         if not self._thread:
             self.go()
@@ -66,8 +87,13 @@ class _Promise:
 
     def _return(self, return_value):
         """
-        A dummy 'return' statement for the '_wait' method to use, as the
-        .join method of a Thread can't return a value.
+        A dummy 'return' statement for the '._wait()' method to use, as the
+        `.join()` method of a Thread can't return a value. We place the
+        `return value` on a results queue, and in the `.wait()` method we
+        can retrieve this same `return_value`.
+
+        :param return_value: The object to place on the result queue.
+        :return: The result of placing an item on the queue (not needed).
         """
         return self._thread.result_queue.put(return_value)
 
@@ -75,7 +101,7 @@ class _Promise:
         """
         Internal method to iterate through each function in the callback
         chain and pass results from one to the next.
-        :return:
+        :return: The result of self._return(...) (not needed).
         """
         # Call the first function given -- the one decorated with @promise.
         fn, args, kwargs = self.first_call

@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 def fail(promise_result, expected):
     """Log an error with the given message."""
     logging.warning("Failure in promise: result({}) is not expected({})"
-                    "".format(result, expected))
+                    "".format(promise_result, expected))
     return promise_result, expected
 
 
@@ -33,7 +33,7 @@ def wait_one(param):
     wait_one(5)
         .on(5, add_three, otherwise=fail)  # Succeeds,
         .on(8, add_three, otherwise=fail)  # Succeeds,
-        .on(9, lambda: None, otherwise=fail)  # Fails!
+        .on(9, lambda: None)  # Fails!
         .on(10, fail, fail)  # Doesn't get called!
         .wait()
 )
