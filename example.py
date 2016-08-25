@@ -36,23 +36,16 @@ def wait_one(param):
 # ===============
 
 # Step-by-step:
-
-logging.info("Creating promise...")
 promise_two = wait_one(3)
-
-logging.info("Adding items to callback chain...")
-promise_two.on(3, add_three, fail).on(6, wait_one, fail)
-
-logging.info("Starting promise asynchronously...")
+promise_two.on(3, add_three, fail)
+promise_two.on(6, wait_one, fail)
 promise_two.go()
-
-logging.info("Waiting for promise to join...")
 result = promise_two.wait()
 logging.info("Got result from promise: {}.".format(result))
 
 
 # Fluent-API-style:
-(
+result = (
     wait_one(5)
         .on(5, add_three, otherwise=fail)  # Succeeds,
         .on(8, add_three, otherwise=fail)  # Succeeds,
@@ -60,3 +53,5 @@ logging.info("Got result from promise: {}.".format(result))
         .on(12, fail, fail)  # Doesn't get called.
         .wait()
 )
+
+logging.info(result)
