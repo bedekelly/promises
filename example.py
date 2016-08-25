@@ -41,7 +41,7 @@ promise_two.on(3, add_three, fail)
 promise_two.on(6, wait_one, fail)
 promise_two.go()
 result = promise_two.wait()
-logging.info("Got result from promise: {}.".format(result))
+logging.info("Got result from promise: {}.\n".format(result))
 
 
 # Fluent-API-style:
@@ -54,4 +54,5 @@ result = (
         .wait()
 )
 
+assert type(result) == ValueError
 logging.info(result)

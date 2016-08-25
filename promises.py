@@ -10,6 +10,23 @@ ChainItem = namedtuple("ChainItem", "expected on_match otherwise")
 FunctionCall = namedtuple("FunctionCall", "fn args kwargs")
 
 
+def maybe_bypass(fn):
+    """
+    Decorate a callback to use it regardless of whether it's a promise or not.
+    :param fn: The callback function to decorate.
+    :return: The modified function.
+    """
+    @wraps(fn)
+    def decorated(*args, **kwargs):
+        try:
+            return fn(*args, no_promise=True, **kwargs)
+        except TypeError as e:
+            if "unexpected keyword argument" not in str(e):
+                raise
+            return fn(*args, **kwargs)
+    return decorated
+
+
 class _Promise:
     """
     The *real* implementation of Promise -- so we can have multiple
@@ -46,8 +63,8 @@ class _Promise:
 
         def raise_value_error(result, expected_result):
             """The result wasn't what we were expecting; raise a ValueError."""
-            error = ValueError("expected({}) does not equal result({})"
-                               "".format(expected_result, result))
+            error = ValueError("Error: expected ({}) does not equal "
+                               "result ({})".format(expected_result, result))
             if self.verbose:
                 logging.error(error)
             raise error
@@ -125,25 +142,17 @@ class _Promise:
         # Go through the call chain until we hit a failure, or the end.
         for call_item in self.call_chain:
             expected, on_match, otherwise = call_item
+            on_match, otherwise = map(maybe_bypass, (on_match, otherwise))
+
             if result == expected:
                 try:
-                    result = on_match(result, no_promise=True)
+                    result = on_match(result)
                 except Exception as e:
-                    if "unexpected keyword argument" in str(e):
-                        try:
-                            result = on_match(result)
-                        except Exception as e:
-                            logging.warning("`on_match` callback raised an "
-                                            "exception: ")
-                            logging.exception(e)
-                            result = e
-                            break
-                    else:
-                        logging.warning("`on_match` callback raised an "
-                                        "exception: ")
-                        logging.exception(e)
-                        result = e
-                        break
+                    logging.warning("`on_match` callback raised an "
+                                    "exception: ")
+                    logging.exception(e)
+                    result = e
+                    break
             else:
                 if self.verbose:
                     logging.warning("Result ({}) != Expected ({}) "
