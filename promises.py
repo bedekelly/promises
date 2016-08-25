@@ -84,10 +84,9 @@ class _Promise:
         :returns: The current promise instance, `self`.
         """
         if self._thread is None:
-            _thread = Thread(target=self._wait)
-            _thread.result_queue = Queue()
-            _thread.start()
-            self._thread = _thread
+            self._thread = Thread(target=self._wait)
+            self._thread.result_queue = Queue()
+            self._thread.start()
         return self
 
     def wait(self):
